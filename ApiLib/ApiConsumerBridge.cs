@@ -10,6 +10,7 @@ namespace MarcoZechner.ApiLib
         private readonly ulong _consumerModId;
         private readonly string _consumerModName;
         private readonly Func<Dictionary<string, Delegate>> _buildCallbackDict;
+        private readonly Action<Dictionary<string, Delegate>> _onApiLoaded;
 
         private Func<string, string, ulong, bool> _verify;
         private SetupApi _setupApi;
@@ -21,13 +22,15 @@ namespace MarcoZechner.ApiLib
             ApiBootstrapConfig cfg,
             ulong consumerModId,
             string consumerModName,
-            Func<Dictionary<string, Delegate>> buildCallbackDict
+            Func<Dictionary<string, Delegate>> buildCallbackDict,
+            Action<Dictionary<string, Delegate>> onApiLoaded
         )
         {
             _cfg = cfg;
             _consumerModId = consumerModId;
             _consumerModName = consumerModName;
             _buildCallbackDict = buildCallbackDict;
+            _onApiLoaded = onApiLoaded;
         }
 
         public void Init()
@@ -41,8 +44,7 @@ namespace MarcoZechner.ApiLib
             ApiLoaded = false;
             BoundMainDict = null;
 
-            if (_setupApi != null)
-                _setupApi.Disconnect(_consumerModId);
+            _setupApi?.Disconnect(_consumerModId);
 
             _setupApi = null;
 
@@ -124,6 +126,7 @@ namespace MarcoZechner.ApiLib
             var callbackDict = _buildCallbackDict() ?? new Dictionary<string, Delegate>();
 
             BoundMainDict = _setupApi.Connect(_consumerModId, _consumerModName, callbackDict);
+            _onApiLoaded?.Invoke(BoundMainDict);
             ApiLoaded = BoundMainDict != null;
         }
     }
