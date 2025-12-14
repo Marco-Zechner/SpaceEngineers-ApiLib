@@ -41,30 +41,26 @@ namespace MarcoZechner.ApiLib
             if (!ApiCast.Try(payload[0], out header))
                 return;
 
-            string magic;
+            string apiId;
             int protocol;
             string intent;
-            string schema;
 
-            if (!ApiCast.TryGet(header, _cfg.HeaderMagicKey, out magic) || magic != _cfg.Magic)
+            if (!ApiCast.TryGet(header, ApiConstants.HEADER_API_PROVIDER_MOD_ID_KEY, out apiId) || apiId != _cfg.ApiProviderModId)
                 return;
 
-            if (!ApiCast.TryGet(header, _cfg.HeaderProtocolKey, out protocol) || protocol != _cfg.Protocol)
+            if (!ApiCast.TryGet(header, ApiConstants.HEADER_PROTOCOL_KEY, out protocol) || protocol != ApiConstants.PROTOCOL)
                 return;
 
-            if (!ApiCast.TryGet(header, _cfg.HeaderIntentKey, out intent) || intent != _cfg.IntentRequest)
+            if (!ApiCast.TryGet(header, ApiConstants.HEADER_INTENT_KEY, out intent) || intent != ApiConstants.INTENT_REQUEST)
                 return;
-
-            if (!ApiCast.TryGet(header, _cfg.HeaderSchemaKey, out schema) || schema != _cfg.SchemaRequest)
-                return;
-
+            
             // respect provider target if present: if target != 0 must match *this provider*
             // since ApiLib is generic, we only enforce "target == 0 OR equals expected provider id if present".
             // The caller can include provider id in header; if you want strict checks, do them outside.
             ulong fromId;
             string fromName;
-            ApiCast.TryGet(header, _cfg.HeaderFromModIdKey, out fromId);
-            ApiCast.TryGet(header, _cfg.HeaderFromModNameKey, out fromName);
+            ApiCast.TryGet(header, ApiConstants.HEADER_FROM_MOD_ID_KEY, out fromId);
+            ApiCast.TryGet(header, ApiConstants.HEADER_FROM_MOD_NAME_KEY, out fromName);
 
             SendAnnounce(fromId, fromName ?? "Unknown");
         }
@@ -73,17 +69,16 @@ namespace MarcoZechner.ApiLib
         {
             var header = new Dictionary<string, object>
             {
-                { _cfg.HeaderMagicKey, _cfg.Magic },
-                { _cfg.HeaderProtocolKey, _cfg.Protocol },
-                { _cfg.HeaderSchemaKey, _cfg.SchemaAnnounce },
-                { _cfg.HeaderIntentKey, _cfg.IntentAnnounce },
-                { _cfg.HeaderApiVersionKey, _cfg.ApiVersion },
+                { ApiConstants.HEADER_API_PROVIDER_MOD_ID_KEY, _cfg.ApiProviderModId },
+                { ApiConstants.HEADER_PROTOCOL_KEY, ApiConstants.PROTOCOL },
+                { ApiConstants.HEADER_INTENT_KEY, ApiConstants.INTENT_ANNOUNCE },
+                { ApiConstants.HEADER_API_VERSION_KEY, _cfg.ApiVersion },
 
-                { _cfg.HeaderTargetModIdKey, targetModId },
-                { _cfg.HeaderTargetModNameKey, targetModName ?? "Any" },
+                { ApiConstants.HEADER_TARGET_MOD_ID_KEY, targetModId },
+                { ApiConstants.HEADER_TARGET_MOD_NAME_KEY, targetModName ?? "Any" },
 
-                { _cfg.HeaderLayoutKey, "Header, Verify, Data" },
-                { _cfg.HeaderTypesKey, "Dict<string,object>, Func<string,string,ulong,bool>, Dict<string,Delegate>" }
+                { ApiConstants.HEADER_LAYOUT_KEY, "Header, Verify, Data" },
+                { ApiConstants.HEADER_TYPES_KEY, "Dict<string,object>, Func<string,string,ulong,bool>, Dict<string,Delegate>" }
             };
 
             ModMessage.Send(_cfg.DiscoveryChannel, header, _verify, _setupProvider);

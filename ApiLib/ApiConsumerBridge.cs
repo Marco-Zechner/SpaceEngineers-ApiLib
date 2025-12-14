@@ -16,7 +16,6 @@ namespace MarcoZechner.ApiLib
         private SetupApi _setupApi;
 
         public bool ApiLoaded { get; private set; }
-        public Dictionary<string, Delegate> BoundMainDict { get; private set; }
 
         public ApiConsumerBridge(
             ApiBootstrapConfig cfg,
@@ -42,7 +41,6 @@ namespace MarcoZechner.ApiLib
         public void Unload()
         {
             ApiLoaded = false;
-            BoundMainDict = null;
 
             _setupApi?.Disconnect(_consumerModId);
 
@@ -55,20 +53,19 @@ namespace MarcoZechner.ApiLib
         {
             var header = new Dictionary<string, object>
             {
-                { _cfg.HeaderMagicKey, _cfg.Magic },
-                { _cfg.HeaderProtocolKey, _cfg.Protocol },
-                { _cfg.HeaderSchemaKey, _cfg.SchemaRequest },
-                { _cfg.HeaderIntentKey, _cfg.IntentRequest },
-                { _cfg.HeaderApiVersionKey, _cfg.ApiVersion },
+                { ApiConstants.HEADER_API_PROVIDER_MOD_ID_KEY, _cfg.ApiProviderModId },
+                { ApiConstants.HEADER_PROTOCOL_KEY, ApiConstants.PROTOCOL },
+                { ApiConstants.HEADER_INTENT_KEY, ApiConstants.INTENT_REQUEST },
+                { ApiConstants.HEADER_API_VERSION_KEY, _cfg.ApiVersion },
 
-                { _cfg.HeaderFromModIdKey, _consumerModId },
-                { _cfg.HeaderFromModNameKey, _consumerModName },
+                { ApiConstants.HEADER_FROM_MOD_ID_KEY, _consumerModId },
+                { ApiConstants.HEADER_FROM_MOD_NAME_KEY, _consumerModName },
 
-                { _cfg.HeaderTargetModIdKey, 0UL }, // let provider decide; caller may override externally if desired
-                { _cfg.HeaderTargetModNameKey, "Any" },
+                { ApiConstants.HEADER_TARGET_MOD_ID_KEY, 0UL }, // let provider decide; caller may override externally if desired
+                { ApiConstants.HEADER_TARGET_MOD_NAME_KEY, "Any" },
 
-                { _cfg.HeaderLayoutKey, "Header, Verify, Data" },
-                { _cfg.HeaderTypesKey, "Dict<string,object>, null, null" }
+                { ApiConstants.HEADER_LAYOUT_KEY, "Header, Verify, Data" },
+                { ApiConstants.HEADER_TYPES_KEY, "Dict<string,object>, null, null" }
             };
 
             object[] payload = { header, null, null };
@@ -88,23 +85,19 @@ namespace MarcoZechner.ApiLib
             string magic;
             int protocol;
             string intent;
-            string schema;
 
-            if (!ApiCast.TryGet(header, _cfg.HeaderMagicKey, out magic) || magic != _cfg.Magic)
+            if (!ApiCast.TryGet(header, ApiConstants.HEADER_API_PROVIDER_MOD_ID_KEY, out magic) || magic != _cfg.ApiProviderModId)
                 return;
 
-            if (!ApiCast.TryGet(header, _cfg.HeaderProtocolKey, out protocol) || protocol != _cfg.Protocol)
+            if (!ApiCast.TryGet(header, ApiConstants.HEADER_PROTOCOL_KEY, out protocol) || protocol != ApiConstants.PROTOCOL)
                 return;
 
-            if (!ApiCast.TryGet(header, _cfg.HeaderIntentKey, out intent) || intent != _cfg.IntentAnnounce)
-                return;
-
-            if (!ApiCast.TryGet(header, _cfg.HeaderSchemaKey, out schema) || schema != _cfg.SchemaAnnounce)
+            if (!ApiCast.TryGet(header, ApiConstants.HEADER_INTENT_KEY, out intent) || intent != ApiConstants.INTENT_ANNOUNCE)
                 return;
 
             // Target id: 0 means broadcast/any; otherwise must match us
             ulong targetId;
-            if (ApiCast.TryGet(header, _cfg.HeaderTargetModIdKey, out targetId))
+            if (ApiCast.TryGet(header, ApiConstants.HEADER_TARGET_MOD_ID_KEY, out targetId))
             {
                 if (targetId != 0UL && targetId != _consumerModId)
                     return;
@@ -121,13 +114,13 @@ namespace MarcoZechner.ApiLib
                 return;
 
             // Connect
-            _setupApi = new SetupApi(setupDict, _cfg.SetupKeyConnect, _cfg.SetupKeyDisconnect);
+            _setupApi = new SetupApi(setupDict, ApiConstants.SETUP_KEY_CONNECT, ApiConstants.SETUP_KEY_DISCONNECT);
 
             var callbackDict = _buildCallbackDict() ?? new Dictionary<string, Delegate>();
 
-            BoundMainDict = _setupApi.Connect(_consumerModId, _consumerModName, callbackDict);
-            _onApiLoaded?.Invoke(BoundMainDict);
-            ApiLoaded = BoundMainDict != null;
+            var boundMainDict = _setupApi.Connect(_consumerModId, _consumerModName, callbackDict);
+            _onApiLoaded?.Invoke(boundMainDict);
+            ApiLoaded = boundMainDict != null;
         }
     }
 }
