@@ -16,4 +16,8 @@
         <PackageReference Include="Mal.Mdk2.References" Version="*" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Example\Shared\" />
+    </ItemGroup>
+
 </Project>
