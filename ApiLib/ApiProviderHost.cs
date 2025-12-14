@@ -11,10 +11,16 @@ namespace MarcoZechner.ApiLib
         
         private Func<string, string, ulong, bool> _verify;
 
-        public ApiProviderHost(ApiBootstrapConfig cfg, IApiProvider setupProvider)
+        public ApiProviderHost(
+            ApiBootstrapConfig cfg, 
+            Func<ulong, string, Dictionary<string, Delegate>, Dictionary<string, Delegate>> connect, 
+            Action<ulong> disconnect)
         {
             _cfg = cfg;
-            _setupProvider = setupProvider;
+            _setupProvider = new SetupApiProvider(
+                connect,
+                disconnect
+            );
         }
 
         public void Load()
