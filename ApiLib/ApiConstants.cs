@@ -2,6 +2,7 @@
 {
     public class ApiConstants
     {
+        public const string API_LIB_VERSION = "1.0.0";
         public const int PROTOCOL = 1;
         
         public const string HEADER_API_PROVIDER_MOD_ID_KEY = "ApiProviderModId";

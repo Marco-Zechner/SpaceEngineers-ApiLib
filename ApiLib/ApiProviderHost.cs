@@ -17,6 +17,11 @@ namespace MarcoZechner.ApiLib
             Action<ulong> disconnect)
         {
             _cfg = cfg;
+            if (!MajorVersionMatch(_cfg.ApiLibVersion, ApiConstants.API_LIB_VERSION))
+            {
+                throw new InvalidOperationException($"ApiLib version mismatch: Mod {_cfg.ApiProviderModId} uses {_cfg.ApiLibVersion}, but the imported library is {ApiConstants.API_LIB_VERSION}");
+            }
+            
             _setupProvider = new SetupApiProvider(
                 connect,
                 disconnect
@@ -92,13 +97,40 @@ namespace MarcoZechner.ApiLib
         
         private bool VerifyApi(string clientApiVersion, string clientModName, ulong clientModSteamId)
         {
+            return MajorVersionMatch(clientApiVersion, _cfg.ApiVersion);
+        }
+        
+        public static bool MajorVersionMatch(string clientApiVersion, string providerApiVersion)
+        {
             var client = (clientApiVersion ?? "").Split('.');
-            var provider = _cfg.ApiVersion.Split('.');
+            var provider = providerApiVersion.Split('.');
 
             if (client.Length != 3 || provider.Length != 3)
                 return false;
 
             return client[0] == provider[0];
+        }
+        
+        public static bool MinorVersionMatch(string clientApiVersion, string providerApiVersion)
+        {
+            var client = (clientApiVersion ?? "").Split('.');
+            var provider = providerApiVersion.Split('.');
+
+            if (client.Length != 3 || provider.Length != 3)
+                return false;
+
+            return client[0] == provider[0] && client[1] == provider[1];
+        }
+        
+        public static bool PatchVersionMatch(string clientApiVersion, string providerApiVersion)
+        {
+            var client = (clientApiVersion ?? "").Split('.');
+            var provider = providerApiVersion.Split('.');
+
+            if (client.Length != 3 || provider.Length != 3)
+                return false;
+
+            return client[0] == provider[0] && client[1] == provider[1] && client[2] == provider[2];
         }
     }
 }

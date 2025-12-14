@@ -26,6 +26,11 @@ namespace MarcoZechner.ApiLib
         )
         {
             _cfg = cfg;
+            if (!ApiProviderHost.MajorVersionMatch(_cfg.ApiLibVersion, ApiConstants.API_LIB_VERSION))
+            {
+                throw new InvalidOperationException($"ApiLib version mismatch: Mod {_cfg.ApiProviderModId} uses {_cfg.ApiLibVersion}, but the imported library is {ApiConstants.API_LIB_VERSION}");
+            }
+            
             _consumerModId = consumerModId;
             _consumerModName = consumerModName;
             _buildCallbackDict = buildCallbackDict;
