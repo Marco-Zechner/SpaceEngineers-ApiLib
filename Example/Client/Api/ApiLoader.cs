@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using MarcoZechner.ApiLib;
+﻿using MarcoZechner.ApiLib;
 using MarcoZechner.ConfigAPI.Shared.Api;
 
 namespace MarcoZechner.ConfigAPI.Client.Api
@@ -11,19 +9,16 @@ namespace MarcoZechner.ConfigAPI.Client.Api
 
         private static ApiConsumerBridge _bridge;
         private static YourModNameApi _api;
-        private static YourModNameCallbackApiImpl _yourModNameCallback;
 
         public static YourModNameApi Api => ApiLoaded ? _api : null;
 
         public static void Init(ulong modId, string modName)
         {
-            _yourModNameCallback = new YourModNameCallbackApiImpl();
-
             _bridge = new ApiConsumerBridge(
-                new ConfigApiBootstrap(),
                 modId,
                 modName,
-                BuildCallbackDict,
+                new ConfigApiBootstrap(),
+                new YourModNameCallbackApiImpl(), 
                 SetMainApi
             );
             
@@ -39,12 +34,8 @@ namespace MarcoZechner.ConfigAPI.Client.Api
             }
 
             _api = null;
-            _yourModNameCallback = null;
         }
         
-        private static Dictionary<string, Delegate> BuildCallbackDict() 
-            => _yourModNameCallback != null ? _yourModNameCallback.ConvertToDict() : new Dictionary<string, Delegate>();
-
-        private static void SetMainApi(Dictionary<string, Delegate> mainApiDict) => _api = new YourModNameApi(mainApiDict);
+        private static void SetMainApi(IApiProvider mainApi) => _api = new YourModNameApi(mainApi);
     }
 }

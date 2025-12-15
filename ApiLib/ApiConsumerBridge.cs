@@ -9,21 +9,19 @@ namespace MarcoZechner.ApiLib
         private readonly ApiBootstrapConfig _cfg;
         private readonly ulong _consumerModId;
         private readonly string _consumerModName;
-        private readonly Func<Dictionary<string, Delegate>> _buildCallbackDict;
-        private readonly Action<Dictionary<string, Delegate>> _onApiLoaded;
+        private readonly IApiProvider _callbackApiInstance;
+        private readonly Action<IApiProvider> _onApiLoaded;
 
         private Func<string, string, ulong, bool> _verify;
         private SetupApi _setupApi;
 
         public bool ApiLoaded { get; private set; }
 
-        public ApiConsumerBridge(
-            ApiBootstrapConfig cfg,
-            ulong consumerModId,
+        public ApiConsumerBridge(ulong consumerModId,
             string consumerModName,
-            Func<Dictionary<string, Delegate>> buildCallbackDict,
-            Action<Dictionary<string, Delegate>> onApiLoaded
-        )
+            ApiBootstrapConfig cfg,
+            IApiProvider callbackApiInstance,
+            Action<IApiProvider> onApiLoaded)
         {
             _cfg = cfg;
             if (!ApiProviderHost.MajorVersionMatch(_cfg.ApiLibVersion, ApiConstants.API_LIB_VERSION))
@@ -33,7 +31,7 @@ namespace MarcoZechner.ApiLib
             
             _consumerModId = consumerModId;
             _consumerModName = consumerModName;
-            _buildCallbackDict = buildCallbackDict;
+            _callbackApiInstance = callbackApiInstance;
             _onApiLoaded = onApiLoaded;
         }
 
@@ -121,9 +119,7 @@ namespace MarcoZechner.ApiLib
             // Connect
             _setupApi = new SetupApi(setupDict, ApiConstants.SETUP_KEY_CONNECT, ApiConstants.SETUP_KEY_DISCONNECT);
 
-            var callbackDict = _buildCallbackDict() ?? new Dictionary<string, Delegate>();
-
-            var boundMainDict = _setupApi.Connect(_consumerModId, _consumerModName, callbackDict);
+            var boundMainDict = _setupApi.Connect(_consumerModId, _consumerModName, _callbackApiInstance);
             _onApiLoaded?.Invoke(boundMainDict);
             ApiLoaded = boundMainDict != null;
         }

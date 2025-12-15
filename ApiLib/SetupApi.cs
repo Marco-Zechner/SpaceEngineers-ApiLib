@@ -5,16 +5,27 @@ namespace MarcoZechner.ApiLib
 {
     public sealed class SetupApi
     {
-        private readonly Func<ulong, string, Dictionary<string, Delegate>, Dictionary<string, Delegate>> _connect;
+        private readonly Func<ulong, string, IApiProvider, IApiProvider> _connect;
         private readonly Action<ulong> _disconnect;
 
         public SetupApi(Dictionary<string, Delegate> dict, string keyConnect, string keyDisconnect)
         {
-            _connect = (Func<ulong, string, Dictionary<string, Delegate>, Dictionary<string, Delegate>>)dict[keyConnect];
+            var connectDict =
+                (Func<ulong, string, Dictionary<string, Delegate>, Dictionary<string, Delegate>>)dict[keyConnect];
+
             _disconnect = (Action<ulong>)dict[keyDisconnect];
+            
+            _connect = (modId, modName, callbacks) =>
+            {
+                var callbacksDict = callbacks.ConvertToDict() ?? new Dictionary<string, Delegate>();
+
+                var resultDict = connectDict(modId, modName, callbacksDict);
+
+                return new DictApiProvider(resultDict);
+            };
         }
 
-        public Dictionary<string, Delegate> Connect(ulong modId, string modName, Dictionary<string, Delegate> callbacks)
+        public IApiProvider Connect(ulong modId, string modName, IApiProvider callbacks)
         {
             return _connect(modId, modName, callbacks);
         }

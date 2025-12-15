@@ -7,13 +7,13 @@ namespace MarcoZechner.ApiLib
     public sealed class ApiProviderHost
     {
         private readonly ApiBootstrapConfig _cfg;
-        private readonly IApiProvider _setupProvider;
+        private readonly SetupApiProvider _setupProvider;
         
         private Func<string, string, ulong, bool> _verify;
 
         public ApiProviderHost(
             ApiBootstrapConfig cfg, 
-            Func<ulong, string, Dictionary<string, Delegate>, Dictionary<string, Delegate>> connect, 
+            Func<ulong, string, IApiProvider, IApiProvider> connect, 
             Action<ulong> disconnect)
         {
             _cfg = cfg;

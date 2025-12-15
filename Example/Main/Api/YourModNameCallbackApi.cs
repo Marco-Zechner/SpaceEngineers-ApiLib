@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
+using MarcoZechner.ApiLib;
 using MarcoZechner.ConfigAPI.Shared.Api;
 
 namespace MarcoZechner.ConfigAPI.Main.Api
@@ -8,8 +8,9 @@ namespace MarcoZechner.ConfigAPI.Main.Api
     {
         private readonly Action _testCallback = null;
         
-        public YourModNameCallbackApi(Dictionary<string, Delegate> dict)
+        public YourModNameCallbackApi(IApiProvider yourCallbackApi)
         {
+            var dict = yourCallbackApi.ConvertToDict();
             Delegate d;
             // safety check, is technically not needed, since if the versions mismatch it won't get this far.
             // but if you accidentally say it's a minor change, but actually broke backwards compatibility, this will prevent a crash.

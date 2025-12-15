@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using MarcoZechner.ApiLib;
 using MarcoZechner.ConfigAPI.Shared.Api;
 using VRage.Game.Components;
@@ -30,18 +29,17 @@ namespace MarcoZechner.ConfigAPI.Main.Api
         }
 
         // Called by ApiLib when a consumer connects
-        private static Dictionary<string, Delegate> Connect(
+        private static IApiProvider Connect(
             ulong consumerModId,
             string consumerModName,
-            Dictionary<string, Delegate> callbackDict
+            IApiProvider yourCallbackApi
         )
         {
             // store callbacks for provider -> consumer calls
-            CallbacksByMod[consumerModId] = new YourModNameCallbackApi(callbackDict);
+            CallbacksByMod[consumerModId] = new YourModNameCallbackApi(yourCallbackApi);
 
             // return bound main api dict for this consumer
-            var bound = new YourModNameApiImpl(consumerModId, consumerModName, CallbacksByMod[consumerModId]);
-            return bound.ConvertToDict();
+            return new YourModNameApiImpl(consumerModId, consumerModName, CallbacksByMod[consumerModId]);
         }
 
         // Called by ApiLib when a consumer disconnects, which means another mod on the same machine is probably unloading.
